@@ -6,8 +6,8 @@ import Cryptodome.Random
 
 class Rabin:
     __bits = 0
-    __public_key = None
-    __private_key = None
+    __public_key = 0
+    __private_key = 0
 
     # default constructor
     def __init__(self, bits):
@@ -24,6 +24,24 @@ class Rabin:
 
     def set_private_key(self, k):
         self.__private_key = k
+
+    # Find SQROOT in Zp where p = 3 mod 4
+    @staticmethod
+    def __sqrt_p_3_mod_4(a, p):
+        r = pow(a, (p + 1) // 4, p)
+        return r
+
+    # Find SQROOT in Zp where p = 5 mod 8
+    @staticmethod
+    def __sqrt_p_5_mod_8(a, p):
+        d = pow(a, (p - 1) // 4, p)
+        r = 0
+        if d == 1:
+            r = pow(a, (p + 3) // 8, p)
+        elif d == p - 1:
+            r = 2 * a * pow(4 * a, (p - 5) // 8, p) % p
+
+        return r
 
     def __generate_prime_number(self):
         while True:
@@ -58,20 +76,45 @@ class Rabin:
         return message ** 2 % self.get_public_key()
 
     def decrypt(self, cipher):
-        a = 1//4 * self.get_private_key()[0] + 1
-        b = cipher ** a
-        m_p = b % self.get_private_key()[0]
+        r, s = 0, 0
+        p = self.get_private_key()[0]
+        q = self.get_private_key()[1]
 
-        c = 1//4 * self.get_private_key()[1] + 1
-        d = cipher ** c
-        m_q = d % self.get_private_key()[1]
-        print("m_p: ", m_p)
-        print("m_q: ", m_q)
+        if p % 4 == 3:
+            r = self.__sqrt_p_3_mod_4(cipher, p)
+        elif p % 8 == 5:
+            r = self.__sqrt_p_5_mod_8(cipher, p)
+        # for q
+        if q % 4 == 3:
+            s = self.__sqrt_p_3_mod_4(cipher, q)
+        elif q % 8 == 5:
+            s = self.__sqrt_p_5_mod_8(cipher, q)
 
-        test = self.egcd(self.get_private_key()[0], self.get_private_key()[1])
+        gcd, c, d = self.egcd(p, q)
+        n = self.get_public_key()
+        x = (r * d * q + s * c * p) % n
+        y = (r * d * q - s * c * p) % n
+        lst = [x, n - x, y, n - y]
+        print(lst)
+        plaintext = self.__choose(lst)
 
-        print("test: ", test)
-        # TODO .......... SVE :D
+        string = bin(plaintext)
+        string = string[:-16]
+        plaintext = int(string, 2)
+
+        return plaintext
+
+    # decide which answer to choose
+    @staticmethod
+    def __choose(lst):
+
+        for i in lst:
+            binary = bin(i)
+            append = binary[-16:]  # take the last 16 bits
+            binary = binary[:-16]  # remove the last 16 bits
+            if append == binary[-16:]:
+                return i
+        return
 
     '''
     The keys for the Rabin crypto system are generated as follows:
@@ -92,11 +135,13 @@ class Rabin:
 
 
 if __name__ == '__main__':
-    rabin = Rabin(128)
+    rabin = Rabin(120)
     rabin.generate_key()
     print("Public key: ", rabin.get_public_key())
     print("Private key: ", rabin.get_private_key())
 
-    cipher_text = rabin.encrypt('Pokušaj testiranje ili vateva')
+    cipher_text = rabin.encrypt('Pokušaj testiranje ili ...!')
     print("Cipher text: ", cipher_text)
-    rabin.decrypt(cipher_text)
+    decrypted = rabin.decrypt(cipher_text)
+    st = format(decrypted, 'x')
+    print("Decripted text: ", bytes.fromhex(st).decode())
