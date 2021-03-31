@@ -106,7 +106,10 @@ class Rabin:
         """
         p = self.__generate_prime_number()
         q = self.__generate_prime_number()
-        if p == q:
+        if p == q: #prosti brojevi ne smiju biti isti 
+            print(p, q, "Numbers cannot be same! Generating again...")
+            return self.generate_key()
+        elif p % 4 != 3 | q % 4 != 3: #prosti brojevi moraju biti kongruentni s 3(mod4)
             print(p, q, "Numbers cannot be same! Generating again...")
             return self.generate_key()
         n = p * q
@@ -186,7 +189,8 @@ if __name__ == '__main__':
     print("Private key:", rabin.get_private_key())
     print("\n")
 
-    text = "Test nekog teksta besmislenog samo radi Rabina!"
+    text = "Ovo je otvoreni tekst!"
+    print("Unjeli smo otvoreni tekst: ", text)
     cipher_text_string = rabin.encrypt(text)
     print("Cipher text string:", cipher_text_string)
     decrypted_text_string = rabin.decrypt(cipher_text_string)
