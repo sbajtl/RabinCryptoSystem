@@ -109,9 +109,6 @@ class Rabin:
         if p == q: #prosti brojevi ne smiju biti isti 
             print(p, q, "Numbers cannot be same! Generating again...")
             return self.generate_key()
-        elif p % 4 != 3 | q % 4 != 3: #prosti brojevi moraju biti kongruentni s 3(mod4)
-            print(p, q, "Numbers cannot be same! Generating again...")
-            return self.generate_key()
         n = p * q
         self.set_public_key(n)
         self.set_private_key((p, q))
