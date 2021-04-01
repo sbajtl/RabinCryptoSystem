@@ -25,9 +25,10 @@ class Rabin:
 
     def __generate_prime_number(self):
         """
-        Generiranje velikih prim brojeva.
-        :return:
-        :rtype:
+        Generiranje velikih prim brojeva. Petlja se vrti dokle god se ne generira prim broj
+        koji mora odgovarati uvjetu kongruencije. Time se petlja prekida i vraća prim broj.
+        :return: prime_number
+        :rtype: int
         """
         while True:
             prime_number = Cryptodome.Util.number.getPrime(self.__bits)
@@ -37,7 +38,8 @@ class Rabin:
 
     def __convert_message(self, message):
         """
-        Konvertira poruku u bit string (binarni) i dodaje zadnjih 6 bitova na kraj (zalihost).
+        Konvertira poruku u bit string (binarni) i dodaje zadnjih 6 bitova na kraj (zalihost),
+        te se string ponovno pretvara u int.
         :param message:
         :type message: string ili int
         :return: int_output
@@ -69,10 +71,12 @@ class Rabin:
     def __convert_by_type(message):
         """
         Za sada se provjerava samo da li je string i napravi konverzija, inače ako je int vrati poruku kakva jest.
+        Inače bi možda bilo bolje da se bez obzira na poruku kojeg je tipa, pretvori u string i tada izvrši
+        manipulacija nad stringom, ali napravljeno je na ovaj način radi lakšeg tesstiranja samo cijelim brojevima.
         :param message:
         :type message:
-        :return:
-        :rtype:
+        :return: message
+        :rtype: any
         """
         if isinstance(message, str):
             message = Cryptodome.Util.number.bytes_to_long(message.encode('utf-8'))
@@ -84,42 +88,42 @@ class Rabin:
     def __select_solution(solutions):
         """
         Odabir između 4 moguća rješenja.
-        :param solutions:
+        :param solutions: list
         :type solutions:
         :return:
         :rtype:
         """
         for i in solutions:
             binary = bin(i)
-            append = binary[-6:]  # take the last 6 bits
-            binary = binary[:-6]  # remove the last 6 bits
+            append = binary[-6:]  # uzima zadnjih 6 bitova
+            binary = binary[:-6]  # briše 6 bitova
 
             if append == binary[-6:]:
                 return i
         return
 
-    def generate_key(self):
+    def generate_keys(self):
         """
-        Generiranje javnog i privatnog ključa.
-        :return:
-        :rtype:
+        Generiranje javnog i privatnog ključa. p i q su privatni ključevi, dok je n javni ključ.
+        Javni kljč se dobije množenjem p i q. Privatni ključ je tuple od p i q.
+        Nakon generiranja ključeva, isti se čuvaju u objektu radi kasnijeg korištenja.
         """
         p = self.__generate_prime_number()
         q = self.__generate_prime_number()
-        if p == q: #prosti brojevi ne smiju biti isti 
+        if p == q:  # prosti brojevi ne smiju biti isti
             print(p, q, "Numbers cannot be same! Generating again...")
-            return self.generate_key()
+            return self.generate_keys()
         n = p * q
         self.set_public_key(n)
         self.set_private_key((p, q))
 
     def encrypt(self, message):
         """
-        Enkripcija
+        Enkripcija (šifriranje) se vrši po formuli c=m^2 mod n gdje je c cipher tekst.
         :param message:
-        :type message:
-        :return:
-        :rtype:
+        :type message: string ili int
+        :return: pow(message, 2, self.get_public_key()) --> cipher text
+        :rtype: int
         """
         self.__message = message
         message = self.__convert_message(message)
@@ -128,10 +132,10 @@ class Rabin:
     def decrypt(self, cipher):
         """
         Dekripcija
-        :param cipher:
-        :type cipher:
-        :return:
-        :rtype:
+        :param cipher: cipher tekst
+        :type cipher: int
+        :return: decrypted_text
+        :rtype: Any
         """
         n = self.get_public_key()
         p = self.get_private_key()[0]
@@ -164,11 +168,12 @@ class Rabin:
 
     def __get_decrypted_text(self, plain_text):
         """
-
-        :param plain_text:
-        :type plain_text:
-        :return:
-        :rtype:
+        Ako je poruka prije šifriranja  string, onda se rješenje formatira i iz njega dobije
+        dekodirani string(čisti tekst). Inače vrati bez promjene.
+        :param plain_text: tekst dobiven iz dekripcije
+        :type plain_text: Any
+        :return: text_decrypted
+        :rtype: string ili int
         """
         if isinstance(self.__message, str):
             formatted_text = format(plain_text, 'x')
@@ -180,7 +185,7 @@ class Rabin:
 
 if __name__ == '__main__':
     rabin = Rabin(512)
-    rabin.generate_key()
+    rabin.generate_keys()
 
     print("Public key:", rabin.get_public_key())
     print("Private key:", rabin.get_private_key())
