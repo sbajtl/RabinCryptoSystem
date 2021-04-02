@@ -46,14 +46,15 @@ class Rabin:
         :rtype: int
         """
         converted = self.__convert_by_type(message)
-        bit_string = bin(converted)  # convert to a bit string
-        output = bit_string + bit_string[-6:]  # pad the last 6 bits to the end
-        int_output = int(output, 2)  # convert back to integer
+        bit_string = bin(converted)  # konverzija u bit string
+        output = bit_string + bit_string[-6:]  # dodaje 6 bitova na kraj stringa (zalihost)
+        int_output = int(output, 2)  # konverzija u int
         return int_output
 
     def __extended_euclidean(self, a, b):
         """
-
+        Proširenim Euklidovim algoritmom dobivamo parametre a i b 
+        za koje ap + bq = 1
         :param a:
         :type a:
         :param b:
@@ -70,9 +71,9 @@ class Rabin:
     @staticmethod
     def __convert_by_type(message):
         """
-        Za sada se provjerava samo da li je string i napravi konverzija, inače ako je int vrati poruku kakva jest.
-        Inače bi možda bilo bolje da se bez obzira na poruku kojeg je tipa, pretvori u string i tada izvrši
-        manipulacija nad stringom, ali napravljeno je na ovaj način radi lakšeg tesstiranja samo cijelim brojevima.
+        Za sada se provjerava samo je li string i napravi konverziju. Ako je int vrati poruku kakva jest.
+        (Inače bi možda bilo bolje da se bez obzira na poruku kojeg je tipa, pretvori u string i tada izvrši
+        manipulacija nad stringom, ali napravljeno je na ovaj način radi lakšeg testiranja samo cijelim brojevima.)
         :param message:
         :type message:
         :return: message
@@ -87,7 +88,7 @@ class Rabin:
     @staticmethod
     def __select_solution(solutions):
         """
-        Odabir između 4 moguća rješenja.
+        Odabir između 4 moguća rješenja temeljem zalihosti.
         :param solutions: list
         :type solutions:
         :return:
@@ -105,7 +106,7 @@ class Rabin:
     def generate_keys(self):
         """
         Generiranje javnog i privatnog ključa. p i q su privatni ključevi, dok je n javni ključ.
-        Javni kljč se dobije množenjem p i q. Privatni ključ je tuple od p i q.
+        Javni ključ se dobije množenjem p i q. Privatni ključ je tuple od p i q.
         Nakon generiranja ključeva, isti se čuvaju u objektu radi kasnijeg korištenja.
         """
         p = self.__generate_prime_number()
@@ -131,7 +132,8 @@ class Rabin:
 
     def decrypt(self, cipher):
         """
-        Dekripcija
+        Dekripcija je rezultat traženja kvadrntih korijena c(mod n)
+        Za isto se koristi Kineski teorem o ostacima te proširani Euklidov algoritam
         :param cipher: cipher tekst
         :type cipher: int
         :return: decrypted_text
@@ -169,7 +171,7 @@ class Rabin:
     def __get_decrypted_text(self, plain_text):
         """
         Ako je poruka prije šifriranja  string, onda se rješenje formatira i iz njega dobije
-        dekodirani string(čisti tekst). Inače vrati bez promjene.
+        dekodirani string (otvoreni tekst). Inače vrati bez promjene.
         :param plain_text: tekst dobiven iz dekripcije
         :type plain_text: Any
         :return: text_decrypted
@@ -198,8 +200,3 @@ if __name__ == '__main__':
     decrypted_text_string = rabin.decrypt(cipher_text_string)
     print("Decrypted text string:", decrypted_text_string)
     print("\n")
-
-    cipher_text_int = rabin.encrypt(123456789)
-    print("Cipher text int:", cipher_text_int)
-    decrypted_text_int = rabin.decrypt(cipher_text_int)
-    print("Decrypted text int:", decrypted_text_int)
